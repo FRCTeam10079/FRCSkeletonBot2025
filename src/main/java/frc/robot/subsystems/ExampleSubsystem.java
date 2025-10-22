@@ -1,8 +1,6 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 
 public class ExampleSubsystem extends SubsystemBase {
 
@@ -41,17 +39,6 @@ public class ExampleSubsystem extends SubsystemBase {
         // example method
         System.out.println("Example Method");
         return 0.0;
-    }
-
-    // Command methods
-    public Command exampleCommand1() {
-        // example command
-        return Commands.runOnce(() -> System.out.println("Example command 1"));
-    }
-
-    public Command exampleCommand2() {
-        // example command
-        return Commands.run(() -> System.out.println("Example command 2 running"), this);
     }
 
     @Override
