@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.subsystems.ExampleSubsystem;
+import frc.robot.subsystems.LimelightSubsystem;
 import frc.robot.commands.ExampleCommand;
 
 public class RobotContainer {
@@ -20,6 +21,8 @@ public class RobotContainer {
     public final ExampleSubsystem dumpRoller = new ExampleSubsystem();
     public final ExampleSubsystem elevator = new ExampleSubsystem();
     public final ExampleSubsystem pivotSub = new ExampleSubsystem();
+
+    public final LimelightSubsystem limelight = new LimelightSubsystem(this);
 
     private final SendableChooser<Command> autoChooser = new SendableChooser<>();
 
@@ -39,4 +42,7 @@ public class RobotContainer {
         if (selected != null) return selected;
         return new InstantCommand();
     }
+    // public LimelightSubsystem getLimelightSubsystem(){
+    //     return this.limelight;
+    // }
 }
