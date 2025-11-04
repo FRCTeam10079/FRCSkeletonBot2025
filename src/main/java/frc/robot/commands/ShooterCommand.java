@@ -2,12 +2,12 @@ package frc.robot.commands;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import frc.robot.subsystems.ExampleSubsystem;
+import frc.robot.subsystems.ShooterSubsystem;
 
-public class ExampleCommand extends Command {
+public class ShooterCommand extends Command {
 
     // Subsystems
-    private ExampleSubsystem subsystem;
+    private ShooterSubsystem subsystem;
 
     // Timer
     // private Timer timer;
@@ -21,16 +21,16 @@ public class ExampleCommand extends Command {
     // private Pose2d targetPose;
 
     // Constructor
-    public ExampleCommand(ExampleSubsystem subsystem) {
+    public ShooterCommand(ShooterSubsystem subsystem) {
         this.subsystem = subsystem;
         addRequirements(subsystem);
     }
 
-    public Command exampleCommand1() {
+    public Command ShooterCommand1() {
         return Commands.runOnce(() -> System.out.println("Example command 1"));
     }
 
-    public Command exampleCommand2() {
+    public Command ShooterCommand2() {
         return Commands.run(() -> System.out.println("Example command 2 running"), subsystem);
     }
 
