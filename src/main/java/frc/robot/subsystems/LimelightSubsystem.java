@@ -18,7 +18,6 @@ import frc.robot.RobotContainer;
 public class LimelightSubsystem extends SubsystemBase {
     // Limelight Data table
     NetworkTable limelightTable = NetworkTableInstance.getDefault().getTable("limelight");
-
     // Basic targeting data
 
     // The ID of the targetted AprilTag
