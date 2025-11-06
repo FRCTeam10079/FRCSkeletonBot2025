@@ -1,5 +1,7 @@
 package frc.robot.subsystems;
 
+import java.security.KeyStore.TrustedCertificateEntry;
+
 import com.ctre.phoenix6.Utils;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -16,7 +18,6 @@ import frc.robot.RobotContainer;
 public class LimelightSubsystem extends SubsystemBase {
     // Limelight Data table
     NetworkTable limelightTable = NetworkTableInstance.getDefault().getTable("limelight");
-
     // Basic targeting data
     // If you see this comment you win a cookie
     // The ID of the targetted AprilTag
@@ -46,7 +47,7 @@ public class LimelightSubsystem extends SubsystemBase {
     NetworkTableEntry tync = limelightTable.getEntry("tync");
 
     // Indicates if limelight is being used
-    private final boolean kUseLimelight = false;
+    private final boolean kUseLimelight = true;
     // RobotContainer
     private final RobotContainer m_robotContainer;
 
@@ -90,7 +91,35 @@ public class LimelightSubsystem extends SubsystemBase {
             SmartDashboard.putBoolean("Tag Detected", isTagDetected());
         }
     }
-    
+
+    // Right now just a copy of periodic(). Should probably make these two methods into one method with an "if simulated then..." :p - oliver
+    @Override
+    public void simulationPeriodic(){
+        // If Limelight is in use
+        if (kUseLimelight) {
+            // Returns the robot's current state(position, orientation, and velocity)
+            //var driveState = m_robotContainer.drivetrain.getState();
+            // Gets the heading/rotation of the robot in degrees
+            //double headingDeg = driveState.Pose.getRotation().getDegrees();
+            // Gets the robot's angular velocity, converts from radians to rotations per second
+            //double omegaRps = Units.radiansToRotations(driveState.Speeds.omegaRadiansPerSecond);
+            // Initializes the Robot's Orientation
+            //LimelightHelpers.SetRobotOrientation("limelight", 90, 0, 0, 0, 0, 0);
+            // Retrieves the robots pose estimation on the field from the Blue Origin using Megatag 2
+            var llMeasurement = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight");
+            llMeasurement = null; // using both megatag 1 and 2?? Im just keeping the 1 from CommandSwerveDrivetrain - kevin
+            //if (llMeasurement != null && llMeasurement.tagCount > 0 && omegaRps < 2.0) {
+                // Adds the limelight pose estimate to the drivetrain's odometry calculation
+                //m_robotContainer.drivetrain.addVisionMeasurement(llMeasurement.pose, Utils.fpgaToCurrentTime(llMeasurement.timestampSeconds));
+            //}
+            // Posts data to SmartDashboard
+            // The parameter inside getDouble or getDoubleArray is what is returned if nothing is found
+            SmartDashboard.putNumber("limelight tx", tx.getDouble(0));
+            SmartDashboard.putNumber("limelight yaw", getYaw());
+            SmartDashboard.putNumber("limelight ta", ta.getDouble(0));
+            SmartDashboard.putBoolean("Tag Detected", isTagDetected());
+        }
+    }
     // Returns the botPose list
     public double[] getBotPose(){
         return botPose.getDoubleArray(new double[6]);

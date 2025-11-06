@@ -292,6 +292,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
         updateVision();
         Logger.recordOutput("Drive Pos", getState().Pose);
+        
     }
 
     private void startSimThread() {
