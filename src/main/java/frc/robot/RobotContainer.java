@@ -6,6 +6,10 @@ package frc.robot;
 
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
+import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.RadiansPerSecond;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
+
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructArrayPublisher;
@@ -19,11 +23,14 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.ExampleSubsystem;
 import frc.robot.subsystems.LimelightSubsystem;
+import pabeles.concurrency.IntOperatorTask.Max;
+import frc.robot.commands.AlignReef;
 import frc.robot.commands.ExampleCommand;
 import frc.robot.generated.TunerConstants;
 
 public class RobotContainer {
-    public final double maxSpeedMetersPerSecond = 5.0;
+    public double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond) * 0.7;
+    public double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond); // 3/4 of a rotation per second max angular velocity
 
     public final CommandXboxController joystick = new CommandXboxController(0);
     public final CommandXboxController joystick2 = new CommandXboxController(1);
@@ -36,7 +43,7 @@ public class RobotContainer {
 
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
     public final LimelightSubsystem limelight = new LimelightSubsystem(this);
-
+ 
     private final SendableChooser<Command> autoChooser = new SendableChooser<>();
 
     private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric();
@@ -50,12 +57,20 @@ public class RobotContainer {
     }
 
     private void configureBindings() {
-        joystick2.a().onTrue(new ExampleCommand(dumpRoller).exampleCommand1());
-        joystick2.b().onTrue(new ExampleCommand(dumpRoller).exampleCommand2());
+        //joystick.a().onTrue(new ExampleCommand(dumpRoller).exampleCommand1());
+        //joystick.b().onTrue(new ExampleCommand(dumpRoller).exampleCommand2());
         drivetrain.setDefaultCommand(
-            drivetrain.applyRequest(() -> drive.withVelocityX(joystick2.getLeftY() * maxSpeedMetersPerSecond).withVelocityY(joystick2.getLeftX() * maxSpeedMetersPerSecond).withRotationalRate(-joystick2.getRightX()))
+            drivetrain.applyRequest(
+                () -> drive.withVelocityX(joystick.getLeftY() * MaxSpeed).withVelocityY(joystick.getLeftX() * MaxSpeed).withRotationalRate(-joystick.getRightX() * MaxAngularRate)
+            )
         );
+        joystick.leftTrigger().whileTrue(
+                new AlignReef(this, Constants.ReefPos.LEFT)
+        );
+
         drivetrain.registerTelemetry(logger::telemeterize);
+
+        
     }
 
     public Command getAutonomousCommand() {
