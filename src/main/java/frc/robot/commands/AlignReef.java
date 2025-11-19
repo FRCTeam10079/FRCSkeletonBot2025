@@ -13,6 +13,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -44,7 +45,7 @@ public class AlignReef extends Command {
     // TUNE: Increase kP for faster approach, decrease if overshooting
     private PIDController pidDistance = new PIDController(6.0, maxVelocity * 0.5, maxVelocity * 0.25);  // Translation: Increase P for more aggressive, decrease for smoother
     // TUNE: Increase kP for faster rotation, decrease if rotation is jerky
-    private PIDController pidRotate = new PIDController(4.0, 3.0, 1.5);    // Rotation: Increase P for faster snap, decrease for smooth turn
+    private PIDController pidRotate = new PIDController(9.0, 3.0, 1.5);    // Rotation: Increase P for faster snap, decrease for smooth turn
 
     // Creates a swerve request that specifies the robot to move FieldCentric
     private final SwerveRequest.FieldCentric driveRequest = new SwerveRequest.FieldCentric()
@@ -84,7 +85,7 @@ public class AlignReef extends Command {
     // Indicates if tag was detected
     private boolean tagDetected;
 
-    private boolean isSimulation = true;
+    private boolean isSimulation = RobotBase.isSimulation();
 
     // CONSTRUCTOR
     public AlignReef(RobotContainer robotContainer, ReefPos reefPos) {
@@ -92,7 +93,6 @@ public class AlignReef extends Command {
         this.drivetrain = robotContainer.drivetrain;
         this.limelight = robotContainer.limelight;
         this.reefPos = reefPos;
-
         // -180 and 180 degrees are the same point, so its continuous
         pidRotate.enableContinuousInput(-Math.PI, Math.PI);
 
@@ -149,14 +149,16 @@ public class AlignReef extends Command {
                 System.out.println("Error: Target pose array is null for Tag ID: " + tID);
                 SmartDashboard.putString("AlignReef/Error", "Target pose array null for Tag " + tID);
                 return false;
-            } else {
+            } 
+            else {
+                int fakeTagKey = 7;
+                // Use the position of april tag with key 3 (relative to the robot)
                 aprilTagList = new double[] {
-                    AprilTagMaps.aprilTagMap.get(3)[0] - drivetrain.getState().Pose.getX(),
-                    
-                    AprilTagMaps.aprilTagMap.get(3)[1] - drivetrain.getState().Pose.getY(),
-                    AprilTagMaps.aprilTagMap.get(3)[2],
-                    AprilTagMaps.aprilTagMap.get(3)[3] - drivetrain.getState().Pose.getRotation().getDegrees(),
-                    AprilTagMaps.aprilTagMap.get(3)[4]
+                    AprilTagMaps.aprilTagMap.get(fakeTagKey)[0] - drivetrain.getState().Pose.getX(), // X
+                    AprilTagMaps.aprilTagMap.get(fakeTagKey)[1] - drivetrain.getState().Pose.getY(), // Y
+                    AprilTagMaps.aprilTagMap.get(fakeTagKey)[2],                                     // Z (not important)
+                    AprilTagMaps.aprilTagMap.get(fakeTagKey)[3] - drivetrain.getState().Pose.getRotation().getDegrees(), // pitch
+                    AprilTagMaps.aprilTagMap.get(fakeTagKey)[4]  // yaw
                 };
             }
         }
@@ -169,36 +171,12 @@ public class AlignReef extends Command {
             aprilTagPose.getRotation().getDegrees()
         });
 
-        // Reef Offset Positions - log the chosen offsets
-        if (Constants.contains(new double[] { 6, 7, 8, 9, 10, 11, 17, 18, 19, 20, 21, 22 }, tID)) {
-            if (reefPos == ReefPos.LEFT) {
-                offsetX = -0.41;
-                offsetY = 0.13;
-            } else if (reefPos == ReefPos.RIGHT) {
-                offsetX = -0.41;
-                offsetY = -0.2335;
-            }
-            SmartDashboard.putNumber("AlignReef/OffsetX", offsetX);
-            SmartDashboard.putNumber("AlignReef/OffsetY", offsetY);
-        }
-
-        // The target rotation of the robot is opposite of the april tag's rotation
-        double targetRotation = aprilTagPose.getRotation().getRadians() - Math.PI;
-        // AngleModulus normalizes the difference to always take the shortest path
-        targetRotation = MathUtil.angleModulus(targetRotation);
-        SmartDashboard.putNumber("AlignReef/TargetRotation", Math.toDegrees(targetRotation));
-
-        // Rotate offsets to match field orientation
-        double newOffsetX = (offsetX * Math.cos(targetRotation)) - (offsetY * Math.sin(targetRotation));
-        double newOffsetY = (offsetX * Math.sin(targetRotation)) + (offsetY * Math.cos(targetRotation));
-        SmartDashboard.putNumber("AlignReef/RotatedOffsetX", newOffsetX);
-        SmartDashboard.putNumber("AlignReef/RotatedOffsetY", newOffsetY);
-
         // Create target pose
         targetPose = new Pose2d(
             0,
             0,
             new Rotation2d(
+                // Angle between robot pose and april tag pose
                 Math.atan2(
                     aprilTagPose.getY() - drivetrain.getState().Pose.getY(),
                     aprilTagPose.getX() - drivetrain.getState().Pose.getX()
