@@ -2,6 +2,7 @@ package frc.robot.commands;
 
 import static edu.wpi.first.units.Units.MetersPerSecond;
 
+import java.lang.Math;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
@@ -83,6 +84,8 @@ public class AlignReef extends Command {
     // Indicates if tag was detected
     private boolean tagDetected;
 
+    private boolean isSimulation = true;
+
     // CONSTRUCTOR
     public AlignReef(RobotContainer robotContainer, ReefPos reefPos) {
         this.robotContainer = robotContainer;
@@ -108,7 +111,7 @@ public class AlignReef extends Command {
         SmartDashboard.putNumber("AlignReef/StartTime", timer.get());
 
         // Get the tag ID from the Limelight
-        if (!limelight.isTagDetected()) {
+        if (!limelight.isTagDetected() && !isSimulation) {
             tagDetected = false;
             SmartDashboard.putBoolean("AlignReef/TagDetected", false);
             System.out.println("Error: No AprilTag detected by Limelight.");
@@ -130,6 +133,7 @@ public class AlignReef extends Command {
         SmartDashboard.putBoolean("AlignReef/TagDetected", true);
 
         // Sets Robot Max Speed for Alignment - Might wanna change it
+        // this feels wrong lmfao
         robotContainer.MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond) * 1.0;
     }
 
@@ -141,15 +145,28 @@ public class AlignReef extends Command {
         double[] aprilTagList = Constants.AprilTagMaps.aprilTagMap.get(tID);
         // Checks if the tag exists within the list of all tags
         if (aprilTagList == null) {
-            System.out.println("Error: Target pose array is null for Tag ID: " + tID);
-            SmartDashboard.putString("AlignReef/Error", "Target pose array null for Tag " + tID);
-            return false;
+            if(!isSimulation){
+                System.out.println("Error: Target pose array is null for Tag ID: " + tID);
+                SmartDashboard.putString("AlignReef/Error", "Target pose array null for Tag " + tID);
+                return false;
+            } else {
+                aprilTagList = new double[] {
+                    AprilTagMaps.aprilTagMap.get(3)[0] - drivetrain.getState().Pose.getX(),
+                    
+                    AprilTagMaps.aprilTagMap.get(3)[1] - drivetrain.getState().Pose.getY(),
+                    AprilTagMaps.aprilTagMap.get(3)[2],
+                    AprilTagMaps.aprilTagMap.get(3)[3] - drivetrain.getState().Pose.getRotation().getDegrees(),
+                    AprilTagMaps.aprilTagMap.get(3)[4]
+                };
+            }
         }
 
         Pose2d aprilTagPose = new Pose2d(aprilTagList[0] * Constants.inToM, aprilTagList[1] * Constants.inToM, new Rotation2d(aprilTagList[3] * Math.PI / 180));
         SmartDashboard.putNumber("AlignReef/TargetTagID", tID);
         SmartDashboard.putNumberArray("AlignReef/AprilTagPose", new double[]{
-            aprilTagPose.getX(), aprilTagPose.getY(), aprilTagPose.getRotation().getDegrees()
+            aprilTagPose.getX(), 
+            aprilTagPose.getY(), 
+            aprilTagPose.getRotation().getDegrees()
         });
 
         // Reef Offset Positions - log the chosen offsets
@@ -178,7 +195,16 @@ public class AlignReef extends Command {
         SmartDashboard.putNumber("AlignReef/RotatedOffsetY", newOffsetY);
 
         // Create target pose
-        targetPose = new Pose2d(aprilTagPose.getX() + newOffsetX, aprilTagPose.getY() + newOffsetY, new Rotation2d(targetRotation));
+        targetPose = new Pose2d(
+            0,
+            0,
+            new Rotation2d(
+                Math.atan2(
+                    aprilTagPose.getY() - drivetrain.getState().Pose.getY(),
+                    aprilTagPose.getX() - drivetrain.getState().Pose.getX()
+                ) 
+            )
+        );
         SmartDashboard.putNumberArray("AlignReef/TargetPose", new double[]{
             targetPose.getX(), targetPose.getY(), targetPose.getRotation().getDegrees()
         });
@@ -310,8 +336,8 @@ is     */
         // Apply velocities
         // Robot moves toward target and rotates simultaneously
         drivetrain.setControl(driveRequest
-                .withVelocityX(velocityX)
-                .withVelocityY(velocityY)
+                .withVelocityX(0)
+                .withVelocityY(0)
                 .withRotationalRate(velocityYaw));
     }
 

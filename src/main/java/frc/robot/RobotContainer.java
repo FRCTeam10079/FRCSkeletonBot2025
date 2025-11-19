@@ -64,8 +64,8 @@ public class RobotContainer {
                 () -> drive.withVelocityX(joystick.getLeftY() * MaxSpeed).withVelocityY(joystick.getLeftX() * MaxSpeed).withRotationalRate(-joystick.getRightX() * MaxAngularRate)
             )
         );
-        joystick.leftTrigger().whileTrue(
-                new AlignReef(this, Constants.ReefPos.LEFT)
+        joystick.leftBumper().whileTrue(
+            new AlignReef(this, Constants.ReefPos.LEFT)
         );
 
         drivetrain.registerTelemetry(logger::telemeterize);
