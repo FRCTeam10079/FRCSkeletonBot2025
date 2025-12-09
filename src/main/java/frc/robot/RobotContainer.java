@@ -51,6 +51,8 @@ public class RobotContainer {
 
     private final Telemetry logger = new Telemetry(5);
 
+    
+
     public RobotContainer() {
         autoChooser.setDefaultOption("Do Nothing", new InstantCommand());
         SmartDashboard.putData("Auto Mode", autoChooser);
@@ -62,7 +64,9 @@ public class RobotContainer {
         //joystick.b().onTrue(new ExampleCommand(dumpRoller).exampleCommand2());
         drivetrain.setDefaultCommand(
             drivetrain.applyRequest(
-                () -> drive.withVelocityX(joystick.getLeftY() * MaxSpeed).withVelocityY(joystick.getLeftX() * MaxSpeed).withRotationalRate(-joystick.getRightX() * MaxAngularRate)
+                () -> drive.withVelocityX(-((Math.abs(joystick.getLeftY()) > 0.1)? joystick.getLeftY() : 0.0) * MaxSpeed * 0.2)
+                           .withVelocityY(-((Math.abs(joystick.getLeftX()) > 0.1)? joystick.getLeftX() : 0.0) * MaxSpeed * 0.2)
+                           .withRotationalRate(-((Math.abs(joystick.getRightX()) > 0.1)? joystick.getRightX() : 0.0) * MaxAngularRate)
             )
         );
         joystick.leftBumper().whileTrue(

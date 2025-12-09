@@ -38,14 +38,15 @@ public class AlignReef extends Command {
     // TUNE: Increase for faster alignment, decrease for better control
     private final double maxVelocity = 6.0;  // Max translation speed (m/s)
     // TUNE: Increase for faster rotation, decrease if spinning too fast
-    private final double maxAngularVelocity = 4.5;
+    private final double maxAngularVelocity = 6;
     ;  // Max rotation speed (rad/s)
 
     /* ----- PIDs ----- */
     // TUNE: Increase kP for faster approach, decrease if overshooting
     private PIDController pidDistance = new PIDController(6.0, maxVelocity * 0.5, maxVelocity * 0.25);  // Translation: Increase P for more aggressive, decrease for smoother
     // TUNE: Increase kP for faster rotation, decrease if rotation is jerky
-    private PIDController pidRotate = new PIDController(9.0, 3.0, 1.5);    // Rotation: Increase P for faster snap, decrease for smooth turn
+    private PIDController pidRotate = new PIDController(8, 0, 0.1
+    );    // Rotation: Increase P for faster snap, decrease for smooth turn
 
     // Creates a swerve request that specifies the robot to move FieldCentric
     private final SwerveRequest.FieldCentric driveRequest = new SwerveRequest.FieldCentric()
