@@ -1,42 +1,62 @@
-// Copyright (c) FIRST and other WPILib contributors.
-// Open Source Software; you can modify and/or share it under the terms of
-// the WPILib BSD license file in the root directory of this project.
-
 package frc.robot;
 
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import com.ctre.phoenix6.swerve.SwerveRequest;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import frc.robot.subsystems.ExampleSubsystem;
-import frc.robot.commands.ExampleCommand;
+
+import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.PivotIntakeSubsystem;
+import frc.robot.commands.ScoreBallAuto; 
+import frc.robot.generated.TunerConstants; 
 
 public class RobotContainer {
-    public final CommandXboxController joystick = new CommandXboxController(0);
-    public final CommandXboxController joystick2 = new CommandXboxController(1);
-    public final CommandXboxController joystick3 = new CommandXboxController(2);
 
-    public final ExampleSubsystem dumpRoller = new ExampleSubsystem();
-    public final ExampleSubsystem elevator = new ExampleSubsystem();
-    public final ExampleSubsystem pivotSub = new ExampleSubsystem();
+    // Subsystems
+    public final CommandSwerveDrivetrain drivetrain = TunerConstants.DriveTrain;
+    public final PivotIntakeSubsystem pivotSub = new PivotIntakeSubsystem();
 
-    private final SendableChooser<Command> autoChooser = new SendableChooser<>();
+    // Controller
+    private final CommandXboxController driverJoy = new CommandXboxController(0);
+
+    // Drive Request
+    private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
+        .withDeadband(0.1).withRotationalDeadband(0.1);
 
     public RobotContainer() {
-        autoChooser.setDefaultOption("Do Nothing", new InstantCommand());
-        SmartDashboard.putData("Auto Mode", autoChooser);
         configureBindings();
     }
 
     private void configureBindings() {
-        joystick.a().onTrue(new ExampleCommand(dumpRoller).exampleCommand1());
-        joystick.b().onTrue(new ExampleCommand(dumpRoller).exampleCommand2());
+        // Teleop Drive
+        drivetrain.setDefaultCommand(
+            drivetrain.applyRequest(() -> drive
+                .withVelocityX(-driverJoy.getLeftY() * 4.0) 
+                .withVelocityY(-driverJoy.getLeftX() * 4.0) 
+                .withRotationalRate(-driverJoy.getRightX() * Math.PI) 
+            )
+        );
+
+        // A Button: Floor Intake
+        driverJoy.a().onTrue(
+            new InstantCommand(() -> pivotSub.moveToFloor())
+            .andThen(new InstantCommand(() -> pivotSub.suckBall()))
+        ).onFalse(
+            new InstantCommand(() -> pivotSub.stopIntake())
+            .andThen(new InstantCommand(() -> pivotSub.moveToStow()))
+        );
+
+        // Right Trigger: Shoot
+        driverJoy.rightTrigger().onTrue(
+             new InstantCommand(() -> pivotSub.moveToShoot())
+             .andThen(new InstantCommand(() -> pivotSub.shootBall()))
+        ).onFalse(
+             new InstantCommand(() -> pivotSub.stopIntake())
+             .andThen(new InstantCommand(() -> pivotSub.moveToStow()))
+        );
     }
 
     public Command getAutonomousCommand() {
-        Command selected = autoChooser.getSelected();
-        if (selected != null) return selected;
-        return new InstantCommand();
+        return new ScoreBallAuto(drivetrain, pivotSub);
     }
 }
