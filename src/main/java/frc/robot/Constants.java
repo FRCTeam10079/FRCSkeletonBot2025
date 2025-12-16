@@ -19,7 +19,7 @@ public final class Constants {
     }
 
     // Pivot Intake Constants - These things should be adjusted to actual vals
-    public static class PivotIntakeConstants {
+    public static class PivotConstants {
         // Motor CAN IDs
         public static final int PIVOT_MOTOR_ID = 20;
         public static final int INTAKE_WHEEL_MOTOR_ID = 18;
@@ -30,10 +30,8 @@ public final class Constants {
         // Pivot encoder zeros at horizontal extended position
         // The robot physically starts at stowed position
         // Encoder offset is applied in PivotIntakeSubsystem constructor
-        public static final double STOWED_POSITION = 0.46;          // Home position
-        public static final double STOWED_POSITION_WITH_CORAL = 0.438; // Slightly above stowed for coral transfer
-        public static final double INTAKE_POSITION = 0.0;         // Ground collection
-        public static final double REEF_SCORING_POSITION = 0.25;   // Reef scoring position
+        public static final double STOWED_POSITION = 0;          // Home position
+        public static final double INTAKE_POSITION = Math.PI/2;         // Ground collection
         
         // Motor speeds
         public static final double INTAKE_SPEED = -0.3;             // Collecting coral

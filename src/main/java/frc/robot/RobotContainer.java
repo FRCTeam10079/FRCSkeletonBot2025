@@ -18,14 +18,18 @@ import edu.wpi.first.units.measure.Velocity;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.ExampleSubsystem;
+import frc.robot.subsystems.IntakeMotorSubsystem;
 import frc.robot.subsystems.LimelightSubsystem;
+import frc.robot.subsystems.PivotSubsystem;
 import pabeles.concurrency.IntOperatorTask.Max;
 import frc.robot.commands.AlignReef;
 import frc.robot.commands.ExampleCommand;
+import frc.robot.commands.IntakeObject;
 import frc.robot.generated.TunerConstants;
 
 public class RobotContainer {
@@ -38,8 +42,8 @@ public class RobotContainer {
 
     public final ExampleSubsystem dumpRoller = new ExampleSubsystem();
     public final ExampleSubsystem elevator = new ExampleSubsystem();
-    public final ExampleSubsystem pivotSub = new ExampleSubsystem();
-
+    public final PivotSubsystem pivotSub = new PivotSubsystem();
+    public final IntakeMotorSubsystem intakeSub = new IntakeMotorSubsystem();
 
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
     public final LimelightSubsystem limelight = new LimelightSubsystem(this);
@@ -66,6 +70,31 @@ public class RobotContainer {
         );
         joystick.leftBumper().whileTrue(
             new AlignReef(this, Constants.ReefPos.LEFT)
+        );
+
+        // INTAKE PROCESS:
+        // Arm deploy 
+        // arm motors spin up 
+        // arm motors spin down 
+        // arm retracts 
+        // arm motors spin up (reversed)
+        // arm motors spin down (reversed)
+
+        // Deploy intake pivot
+        joystick.y().onTrue(
+            Commands.runOnce(() -> pivotSub.setSetpoint(Math.PI/2))
+        );
+        // Retract intake pivot
+        joystick.x().onTrue(
+            Commands.runOnce(() -> pivotSub.setSetpoint(0))
+        );
+        // Retract intake pivot
+        joystick.a().onTrue(
+            Commands.runOnce(() -> intakeSub.setMotorSpeed(3.0))
+        );
+        // Retract intake pivot
+        joystick.b().onTrue(
+            Commands.runOnce(() -> intakeSub.setMotorSpeed(0))
         );
 
         drivetrain.registerTelemetry(logger::telemeterize);

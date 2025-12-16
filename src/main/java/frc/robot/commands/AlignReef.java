@@ -271,7 +271,7 @@ is     */
         // Get current pose
         Pose2d currentPose = drivetrain.getState().Pose;
         SmartDashboard.putNumberArray("AlignReef/CurrentPose", new double[]{
-            currentPose.getX(), currentPose.getY(), currentPose.getRotation().getDegrees()
+            currentPose.getX(), currentPose.getY(), currentPose.getRotation().getRadians()
         });
         SmartDashboard.putNumber("AlignReef/ExecuteTime", timer.get());
 
